@@ -34,6 +34,7 @@
     box-shadow:
       0 10px 30px rgba(15, 23, 42, 0.7),
       0 0 0 1px rgba(148, 163, 184, 0.15);
+    gap: 12px;
   }
 
   .label {
@@ -44,14 +45,19 @@
     padding: 4px 10px;
     border-radius: 999px;
     background: radial-gradient(circle at 0 0, #f97316, #b91c1c);
-    margin-right: 12px;
     white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .viewport {
+    flex: 1;
+    overflow: hidden;
   }
 
   .track {
     display: inline-flex;
     white-space: nowrap;
-    animation: scroll 25s linear infinite;
+    animation: scroll 45s linear infinite; /* langsamer */
   }
 
   .item {
@@ -91,8 +97,10 @@
 <body>
 
 <div class="shell">
-  <div class="label">Aujourd'hui</div>
-  <div id="ticker" class="track"></div>
+  <div class="label">AUJOURD'HUI</div>
+  <div class="viewport">
+    <div id="ticker" class="track"></div>
+  </div>
 </div>
 
 <script>
@@ -161,9 +169,11 @@ async function loadCourses() {
 
       const startDate = parseDate(startStr);
       const endDate   = parseDate(endStr);
-
       if (!startDate || !endDate) continue;
 
+      // HIER wird geprüft, ob der Kurs HEUTE läuft:
+      // 1) Wochentag passt (Lundi, Mardi, ...)
+      // 2) today liegt zwischen DEBUT und FIN (inklusive)
       if (weekday === weekdayName &&
           today >= startDate &&
           today <= endDate) {
