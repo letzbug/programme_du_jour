@@ -57,7 +57,7 @@
   .track {
     display: inline-flex;
     white-space: nowrap;
-    animation: scroll 45s linear infinite; /* langsamer */
+    animation: scroll 60s linear infinite; /* schön langsam */
   }
 
   .item {
@@ -127,6 +127,11 @@ function colIndex(header, candidates) {
   return -1;
 }
 
+function showEmpty(t, msg) {
+  t.innerHTML = `<span class="empty">${msg}</span>`;
+  t.style.animation = "none";
+}
+
 async function loadCourses() {
   const t = document.getElementById("ticker");
   try {
@@ -171,9 +176,9 @@ async function loadCourses() {
       const endDate   = parseDate(endStr);
       if (!startDate || !endDate) continue;
 
-      // HIER wird geprüft, ob der Kurs HEUTE läuft:
-      // 1) Wochentag passt (Lundi, Mardi, ...)
-      // 2) today liegt zwischen DEBUT und FIN (inklusive)
+      // → HIER: Kurs läuft heute, wenn
+      //    - Wochentag passt (Lundi/Mardi/... == heute)
+      //    - today zwischen DEBUT und FIN liegt (inkl.)
       if (weekday === weekdayName &&
           today >= startDate &&
           today <= endDate) {
@@ -186,6 +191,7 @@ async function loadCourses() {
       return;
     }
 
+    // Einträge einfügen
     active.forEach(c => {
       const div = document.createElement("div");
       div.className = "item";
@@ -193,20 +199,17 @@ async function loadCourses() {
       t.appendChild(div);
     });
 
-    / Track duplizieren und weit nach rechts schieben
-const clone = t.cloneNode(true);
-clone.style.marginLeft = "100%";
-t.parentNode.appendChild(clone);
+    // Für Endloslauf: Items im selben Track duplizieren
+    const items = Array.from(t.children);
+    items.forEach(item => {
+      const clone = item.cloneNode(true);
+      t.appendChild(clone);
+    });
 
   } catch (e) {
     console.error(e);
     showEmpty(t, "Erreur lors du chargement des formations.");
   }
-}
-
-function showEmpty(t, msg) {
-  t.innerHTML = `<span class="empty">${msg}</span>`;
-  t.style.animation = "none";
 }
 
 loadCourses();
