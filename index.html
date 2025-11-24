@@ -1,1 +1,146 @@
 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UniPop Ticker</title>
+<style>
+  :root {
+    --bg: #111827;
+    --accent: #f97316;
+    --text: #f9fafb;
+    --muted: #9ca3af;
+  }
+
+  body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: transparent;
+  }
+
+  .shell {
+    width: 100%;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #020617, #111827);
+    color: var(--text);
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.7);
+  }
+
+  .label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 0 0, #f97316, #b91c1c);
+    margin-right: 12px;
+    white-space: nowrap;
+  }
+
+  .track {
+    display: inline-flex;
+    white-space: nowrap;
+    animation: scroll 25s linear infinite;
+  }
+
+  .item {
+    padding: 0 24px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    position: relative;
+  }
+
+  .item::after {
+    content: "•";
+    color: var(--muted);
+    opacity: 0.7;
+    margin-left: 16px;
+  }
+
+  .item:last-child::after {
+    content: "";
+  }
+
+  .empty {
+    font-size: 0.85rem;
+    opacity: 0.85;
+  }
+
+  @keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  @media (max-width: 600px) {
+    .shell { border-radius: 16px; padding-inline: 10px; }
+    .label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="label">Aujourd'hui</div>
+  <div id="ticker" class="track"></div>
+</div>
+
+<script>
+const WEEKDAYS_FR = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+
+function parseDate(d) {
+  const [day, month, year] = d.split(".");
+  return new Date(2000 + parseInt(year,10), parseInt(month,10)-1, parseInt(day,10));
+}
+
+async function loadCourses() {
+  const t = document.getElementById("ticker");
+  try {
+    const res = await fetch("courses.json?cache=" + Math.random());
+    const data = await res.json();
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekdayName = WEEKDAYS_FR[today.getDay()];
+
+    const active = data.filter(c => {
+      const s = parseDate(c.start);
+      const e = parseDate(c.end);
+      return (
+        c.weekday === weekdayName &&
+        today >= s &&
+        today <= e
+      );
+    });
+
+    if (!active.length) {
+      t.innerHTML = `<span class="empty">Aucune formation aujourd’hui.</span>`;
+      t.style.animation = "none";
+      return;
+    }
+
+    active.forEach(c => {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.textContent = c.title;
+      t.appendChild(div);
+    });
+
+    const clone = t.cloneNode(true);
+    t.parentNode.appendChild(clone);
+  } catch (e) {
+    t.innerHTML = `<span class="empty">Erreur lors du chargement des formations.</span>`;
+    t.style.animation = "none";
+  }
+}
+
+loadCourses();
+</script>
+
+</body>
+</html>
