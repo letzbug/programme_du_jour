@@ -193,8 +193,10 @@ async function loadCourses() {
       t.appendChild(div);
     });
 
-    const clone = t.cloneNode(true);
-    t.parentNode.appendChild(clone);
+    / Track duplizieren und weit nach rechts schieben
+const clone = t.cloneNode(true);
+clone.style.marginLeft = "100%";
+t.parentNode.appendChild(clone);
 
   } catch (e) {
     console.error(e);
